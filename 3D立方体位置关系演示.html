@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D坐标轴演示</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+      canvas {
+        display: block;
+      }
+      .info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: #333;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .view-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .view-button {
+        padding: 8px 12px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s;
+      }
+      .view-button:hover {
+        background-color: rgba(200, 200, 255, 0.9);
+      }
+      .axis-group {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 5px;
+      }
+      .cube-controls {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+        width: 250px;
+      }
+      .input-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      .input-group label {
+        width: 60px;
+        font-size: 14px;
+      }
+      .input-group input {
+        flex: 1;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+      .add-button {
+        width: 100%;
+        padding: 8px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+      .add-button:hover {
+        background-color: #45a049;
+      }
+      .cube-list {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        border-radius: 5px;
+        width: 200px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .cube-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px;
+        margin-bottom: 5px;
+        background-color: rgba(200, 200, 200, 0.3);
+        border-radius: 3px;
+      }
+      .cube-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+      .delete-button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 2px 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .delete-button:hover {
+        background-color: #d32f2f;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info">
+      <h3>3D坐标轴演示</h3>
+      <p>鼠标拖动旋转视角，滚轮缩放</p>
+    </div>
+
+    <div class="view-controls">
+      <div class="axis-group">
+        <button class="view-button" id="view-x-positive">X轴正向(左面)</button>
+        <button class="view-button" id="view-x-negative">X轴负向(右面)</button>
+      </div>
+      <div class="axis-group">
+        <button class="view-button" id="view-y-positive">Y轴正向(正面)</button>
+        <button class="view-button" id="view-y-negative">Y轴负向(反面)</button>
+      </div>
+      <div class="axis-group">
+        <button class="view-button" id="view-z-positive">Z轴正向(上面)</button>
+        <button class="view-button" id="view-z-negative">Z轴负向(下面)</button>
+      </div>
+    </div>
+
+    <div class="cube-controls">
+      <h3>添加正方体</h3>
+      <div class="input-group">
+        <label for="cube-x">X坐标:</label>
+        <input type="number" id="cube-x" value="0" step="0.5" />
+      </div>
+      <div class="input-group">
+        <label for="cube-y">Y坐标:</label>
+        <input type="number" id="cube-y" value="0" step="0.5" />
+      </div>
+      <div class="input-group">
+        <label for="cube-z">Z坐标:</label>
+        <input type="number" id="cube-z" value="0" step="0.5" />
+      </div>
+      <div class="input-group">
+        <label for="cube-size">边长:</label>
+        <input type="number" id="cube-size" value="1" min="0.1" step="0.1" />
+      </div>
+      <button class="add-button" id="add-cube">添加正方体</button>
+    </div>
+
+    <div class="cube-list">
+      <h3>正方体列表</h3>
+      <div id="cube-list-container">
+        <!-- 正方体列表项将在这里动态生成 -->
+      </div>
+    </div>
+
+    <!-- 引入Three.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- 引入轨道控制器 -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+      // 初始化场景
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+
+      // 设置相机
+      const camera = new THREE.PerspectiveCamera(
+        75, // 视野角度
+        window.innerWidth / window.innerHeight, // 长宽比
+        0.1, // 近裁剪面
+        1000 // 远裁剪面
+      );
+
+      // 设置相机位置 - 根据要求调整视角（Z轴朝上）
+      camera.position.set(10, 15, 10);
+      camera.lookAt(0, 0, 0);
+
+      // 设置渲染器
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // 添加轨道控制器
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // 添加环境光
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      // 添加方向光
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+      directionalLight.position.set(10, 10, 5);
+      scene.add(directionalLight);
+
+      // 创建坐标轴函数
+      function createArrowAxis(direction, color, label, length = 8) {
+        // 创建箭头辅助对象
+        const arrowHelper = new THREE.ArrowHelper(
+          direction, // 方向
+          new THREE.Vector3(0, 0, 0), // 起点
+          length, // 长度
+          color, // 颜色
+          length * 0.1, // 箭头头部长度
+          length * 0.05 // 箭头头部宽度
+        );
+
+        // 创建文字标签
+        const loader = new THREE.FontLoader();
+
+        // 使用简单的精灵来创建文字标签
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = 256;
+        canvas.height = 256;
+
+        context.fillStyle = color;
+        context.font = "bold 80px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(label, 128, 128);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(spriteMaterial);
+
+        // 设置标签位置
+        const labelPosition = direction
+          .clone()
+          .normalize()
+          .multiplyScalar(length + 1);
+        sprite.position.copy(labelPosition);
+        sprite.scale.set(2, 2, 1);
+
+        return { arrow: arrowHelper, label: sprite };
+      }
+
+      // 创建X轴（红色，向右）
+      const xAxis = createArrowAxis(new THREE.Vector3(1, 0, 0), 0xff0000, "X");
+      scene.add(xAxis.arrow);
+      scene.add(xAxis.label);
+
+      // 创建Y轴（绿色，向前）
+      const yAxis = createArrowAxis(new THREE.Vector3(0, 0, 1), 0x00ff00, "Y");
+      scene.add(yAxis.arrow);
+      scene.add(yAxis.label);
+
+      // 创建Z轴（蓝色，向上）
+      const zAxis = createArrowAxis(new THREE.Vector3(0, 1, 0), 0x0000ff, "Z");
+      scene.add(zAxis.arrow);
+      scene.add(zAxis.label);
+
+      // 创建X-Y平面网格
+      const gridHelper = new THREE.GridHelper(20, 20, 0x888888, 0xcccccc);
+      scene.add(gridHelper);
+
+      // 添加坐标数字标注
+      function createNumberLabel(text, position, color = 0x000000) {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = 128;
+        canvas.height = 128;
+
+        context.fillStyle = color;
+        context.font = "bold 48px Arial";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(text, 64, 64);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const sprite = new THREE.Sprite(spriteMaterial);
+
+        sprite.position.copy(position);
+        sprite.scale.set(1, 1, 1);
+
+        return sprite;
+      }
+
+      // 添加X轴坐标数字
+      for (let i = -8; i <= 8; i += 1) {
+        if (i !== 0) {
+          const label = createNumberLabel(
+            i.toString(),
+            new THREE.Vector3(i, 0, 0),
+            0xff0000
+          );
+          scene.add(label);
+        }
+      }
+
+      // 添加Y轴坐标数字
+      for (let i = -8; i <= 8; i += 1) {
+        if (i !== 0) {
+          const label = createNumberLabel(
+            i.toString(),
+            new THREE.Vector3(0, 0, i),
+            0x00ff00
+          );
+          scene.add(label);
+        }
+      }
+
+      // 添加Z轴坐标数字
+      for (let i = -8; i <= 8; i += 1) {
+        if (i !== 0) {
+          const label = createNumberLabel(
+            i.toString(),
+            new THREE.Vector3(0, i, 0),
+            0x0000ff
+          );
+          scene.add(label);
+        }
+      }
+
+      // 添加原点标注
+      const originLabel = createNumberLabel("O", new THREE.Vector3(0, 0, 0));
+      scene.add(originLabel);
+
+      // 视角切换函数
+      function setViewPosition(position, lookAt = new THREE.Vector3(0, 0, 0)) {
+        // 创建动画过渡效果
+        const startPosition = camera.position.clone();
+        const startTime = Date.now();
+        const duration = 1000; // 1秒过渡时间
+
+        function animateCamera() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // 使用缓动函数使动画更平滑
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+          // 插值计算相机位置
+          camera.position.lerpVectors(startPosition, position, easeProgress);
+          camera.lookAt(lookAt);
+
+          if (progress < 1) {
+            requestAnimationFrame(animateCamera);
+          }
+        }
+
+        animateCamera();
+      }
+
+      // X轴正向视角
+      document
+        .getElementById("view-x-positive")
+        .addEventListener("click", () => {
+          setViewPosition(new THREE.Vector3(20, 0, 0));
+        });
+
+      // X轴负向视角
+      document
+        .getElementById("view-x-negative")
+        .addEventListener("click", () => {
+          setViewPosition(new THREE.Vector3(-20, 0, 0));
+        });
+
+      // Y轴正向视角
+      document
+        .getElementById("view-y-positive")
+        .addEventListener("click", () => {
+          setViewPosition(new THREE.Vector3(0, 0, 20));
+        });
+
+      // Y轴负向视角
+      document
+        .getElementById("view-y-negative")
+        .addEventListener("click", () => {
+          setViewPosition(new THREE.Vector3(0, 0, -20));
+        });
+
+      // Z轴正向视角
+      document
+        .getElementById("view-z-positive")
+        .addEventListener("click", () => {
+          setViewPosition(new THREE.Vector3(0, 20, 0));
+        });
+
+      // Z轴负向视角
+      document
+        .getElementById("view-z-negative")
+        .addEventListener("click", () => {
+          setViewPosition(new THREE.Vector3(0, -20, 0));
+        });
+
+      // 正方体管理功能
+      let cubes = [];
+      let cubeIdCounter = 0;
+
+      // 生成随机颜色
+      function getRandomColor() {
+        const colors = [
+          0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xff8800,
+          0x8800ff, 0x00ff88, 0xff0088, 0x88ff00, 0x0088ff,
+        ];
+        return colors[cubeIdCounter % colors.length];
+      }
+
+      // 创建正方体
+      function createCube(x, y, z, size, color) {
+        const geometry = new THREE.BoxGeometry(size, size, size);
+        const material = new THREE.MeshPhongMaterial({
+          color: color,
+          opacity: 0.8,
+          transparent: true,
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(x, y, z);
+
+        // 添加边框
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(
+          edges,
+          new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 })
+        );
+        cube.add(line);
+
+        return cube;
+      }
+
+      // 添加正方体到场景和列表
+      function addCube() {
+        const x = parseFloat(document.getElementById("cube-x").value);
+        const y = parseFloat(document.getElementById("cube-y").value);
+        const z = parseFloat(document.getElementById("cube-z").value);
+        const size = parseFloat(document.getElementById("cube-size").value);
+
+        const color = getRandomColor();
+        const cube = createCube(x, y, z, size, color);
+
+        const cubeData = {
+          id: cubeIdCounter++,
+          mesh: cube,
+          x: x,
+          y: y,
+          z: z,
+          size: size,
+          color: color,
+        };
+
+        cubes.push(cubeData);
+        scene.add(cube);
+        updateCubeList();
+      }
+
+      // 更新正方体列表显示
+      function updateCubeList() {
+        const container = document.getElementById("cube-list-container");
+        container.innerHTML = "";
+
+        if (cubes.length === 0) {
+          container.innerHTML = "<p>暂无正方体</p>";
+          return;
+        }
+
+        cubes.forEach((cube) => {
+          const item = document.createElement("div");
+          item.className = "cube-item";
+
+          const colorBox = document.createElement("div");
+          colorBox.className = "cube-color";
+          colorBox.style.backgroundColor = `#${cube.color
+            .toString(16)
+            .padStart(6, "0")}`;
+
+          const info = document.createElement("div");
+          info.className = "cube-info";
+          info.innerHTML = `正方体 #${cube.id}<br>
+                           位置: (${cube.x}, ${cube.y}, ${cube.z})<br>
+                           边长: ${cube.size}`;
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-button";
+          deleteBtn.textContent = "删除";
+          deleteBtn.addEventListener("click", () => deleteCube(cube.id));
+
+          item.appendChild(colorBox);
+          item.appendChild(info);
+          item.appendChild(deleteBtn);
+          container.appendChild(item);
+        });
+      }
+
+      // 删除正方体
+      function deleteCube(id) {
+        const index = cubes.findIndex((cube) => cube.id === id);
+        if (index !== -1) {
+          scene.remove(cubes[index].mesh);
+          cubes.splice(index, 1);
+          updateCubeList();
+        }
+      }
+
+      // 添加正方体按钮事件
+      document.getElementById("add-cube").addEventListener("click", addCube);
+
+      // 初始化空列表
+      updateCubeList();
+
+      // 窗口大小调整事件
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // 动画循环
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // 更新轨道控制器
+        controls.update();
+
+        // 渲染场景
+        renderer.render(scene, camera);
+      }
+
+      // 启动动画
+      animate();
+    </script>
+  </body>
+</html>

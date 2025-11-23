@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>容斥原理交互式动画</title>
+    <style>
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+      }
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+      }
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        background-color: #f1f1f1;
+        border: 1px solid #ddd;
+        border-bottom: none;
+        border-radius: 5px 5px 0 0;
+        margin-right: 5px;
+      }
+      .tab.active {
+        background-color: white;
+        border-bottom: 1px solid white;
+        margin-bottom: -1px;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .canvas-container {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      canvas {
+        display: block;
+        cursor: grab;
+      }
+      canvas:active {
+        cursor: grabbing;
+      }
+      .info-panel {
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+      .info-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #2c3e50;
+      }
+      .info-content {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .info-item {
+        margin-right: 20px;
+        margin-bottom: 10px;
+      }
+      .color-box {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+        vertical-align: middle;
+        border: 1px solid #333;
+      }
+      .instructions {
+        background-color: #e8f4fc;
+        border-left: 4px solid #2196f3;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        border-radius: 0 5px 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>容斥原理交互式动画</h1>
+
+      <div class="instructions">
+        <p>
+          使用说明：点击并拖动圆圈来改变集合的位置，观察交集和并集的变化。切换标签页可以查看两集合和三集合的情况。
+        </p>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('two-sets')">两集合容斥</div>
+        <div class="tab" onclick="switchTab('three-sets')">三集合容斥</div>
+      </div>
+
+      <div id="two-sets" class="tab-content active">
+        <div class="canvas-container">
+          <canvas id="canvas-two"></canvas>
+        </div>
+        <div class="info-panel">
+          <div class="info-title">两集合容斥原理</div>
+          <div class="info-content">
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(255, 99, 132, 0.5)"
+              ></span>
+              集合A
+            </div>
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(54, 162, 235, 0.5)"
+              ></span>
+              集合B
+            </div>
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(255, 99, 132, 0.5)"
+              ></span>
+              <span
+                class="color-box"
+                style="
+                  background-color: rgba(54, 162, 235, 0.5);
+                  margin-left: -10px;
+                "
+              ></span>
+              A∩B (交集)
+            </div>
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(255, 99, 132, 0.5)"
+              ></span>
+              <span
+                class="color-box"
+                style="
+                  background-color: rgba(54, 162, 235, 0.5);
+                  margin-left: -10px;
+                "
+              ></span>
+              A∪B (并集)
+            </div>
+          </div>
+          <p style="margin-top: 15px">
+            直观理解：两个集合的并集大小等于两个集合大小之和减去它们交集的大小，避免重复计算交集部分。
+          </p>
+        </div>
+      </div>
+
+      <div id="three-sets" class="tab-content">
+        <div class="canvas-container">
+          <canvas id="canvas-three"></canvas>
+        </div>
+        <div class="info-panel">
+          <div class="info-title">三集合容斥原理</div>
+          <div class="info-content">
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(255, 99, 132, 0.5)"
+              ></span>
+              集合A
+            </div>
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(54, 162, 235, 0.5)"
+              ></span>
+              集合B
+            </div>
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(255, 206, 86, 0.5)"
+              ></span>
+              集合C
+            </div>
+            <div class="info-item">
+              <span
+                class="color-box"
+                style="background-color: rgba(128, 0, 128, 0.5)"
+              ></span>
+              A∩B∩C (三集合交集)
+            </div>
+          </div>
+          <p style="margin-top: 15px">
+            直观理解：三个集合的并集大小等于三个集合大小之和，减去所有两两交集的大小，再加上三个集合的交集大小（因为被减了三次，需要加回来一次）。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 切换标签页
+      function switchTab(tabId) {
+        // 隐藏所有标签内容
+        document.querySelectorAll(".tab-content").forEach((content) => {
+          content.classList.remove("active");
+        });
+
+        // 移除所有标签的活动状态
+        document.querySelectorAll(".tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // 显示选中的标签内容
+        document.getElementById(tabId).classList.add("active");
+
+        // 设置选中标签的活动状态
+        event.target.classList.add("active");
+
+        // 重新调整canvas大小
+        if (tabId === "two-sets") {
+          setTimeout(() => {
+            if (window.twoSets && window.twoSets.setA && window.twoSets.setB) {
+              window.twoSets.resizeCanvas();
+              window.twoSets.draw();
+            }
+          }, 100);
+        } else if (tabId === "three-sets") {
+          // 增加延迟时间，确保三集合对象完全初始化
+          setTimeout(() => {
+            if (
+              window.threeSets &&
+              window.threeSets.setA &&
+              window.threeSets.setB &&
+              window.threeSets.setC
+            ) {
+              window.threeSets.resizeCanvas();
+              window.threeSets.draw();
+            }
+          }, 200);
+        }
+      }
+
+      // 两集合容斥原理
+      class TwoSetsInclusionExclusion {
+        constructor(canvasId) {
+          this.canvas = document.getElementById(canvasId);
+          this.ctx = this.canvas.getContext("2d");
+          this.isDragging = false;
+          this.dragTarget = null;
+
+          // 设置canvas尺寸
+          this.resizeCanvas();
+          window.addEventListener("resize", () => this.resizeCanvas());
+
+          // 集合A和B的初始位置和半径
+          // 使用固定网格大小，而不是根据半径计算
+          const cellSize = 20;
+          
+          // 确保初始位置对齐到网格
+          const alignedAX = Math.round(this.canvas.width * 0.35 / cellSize) * cellSize;
+          const alignedAY = Math.round(this.canvas.height * 0.5 / cellSize) * cellSize;
+          const alignedBX = Math.round(this.canvas.width * 0.65 / cellSize) * cellSize;
+          const alignedBY = Math.round(this.canvas.height * 0.5 / cellSize) * cellSize;
+          
+          this.setA = {
+            x: alignedAX,
+            y: alignedAY,
+            radius: 100,  // 增加半径使方块更大
+            color: "rgba(255, 99, 132, 0.5)",
+            label: "A",
+          };
+
+          this.setB = {
+            x: alignedBX,
+            y: alignedBY,
+            radius: 100,  // 增加半径使方块更大
+            color: "rgba(54, 162, 235, 0.5)",
+            label: "B",
+          };
+
+          // 添加事件监听器
+          this.canvas.addEventListener("mousedown", (e) =>
+            this.handleMouseDown(e)
+          );
+          this.canvas.addEventListener("mousemove", (e) =>
+            this.handleMouseMove(e)
+          );
+          this.canvas.addEventListener("mouseup", () => this.handleMouseUp());
+          this.canvas.addEventListener("mouseleave", () =>
+            this.handleMouseUp()
+          );
+
+          // 触摸事件支持
+          this.canvas.addEventListener("touchstart", (e) =>
+            this.handleTouchStart(e)
+          );
+          this.canvas.addEventListener("touchmove", (e) =>
+            this.handleTouchMove(e)
+          );
+          this.canvas.addEventListener("touchend", () => this.handleMouseUp());
+
+          // 初始绘制
+          this.draw();
+        }
+
+        resizeCanvas() {
+          // 获取父容器尺寸
+          const container = this.canvas.parentElement;
+          const oldWidth = this.canvas.width || 0;
+          const oldHeight = this.canvas.height || 0;
+          
+          this.canvas.width = container.clientWidth;
+          this.canvas.height = container.clientHeight;
+
+          // 确保集合已初始化后再重新绘制
+          if (this.setA && this.setB) {
+            // 如果画布尺寸发生了变化或者之前尺寸为0，重新计算集合位置
+            if (oldWidth !== this.canvas.width || oldHeight !== this.canvas.height || oldWidth === 0 || oldHeight === 0) {
+                // 使用固定网格大小，而不是根据半径计算
+                const cellSize = 20;
+                
+                // 如果是初始状态（oldWidth或oldHeight为0），使用默认比例
+                let originalSetARatioX = this.setA.x / (oldWidth || this.canvas.width);
+                let originalSetARatioY = this.setA.y / (oldHeight || this.canvas.height);
+                let originalSetBRatioX = this.setB.x / (oldWidth || this.canvas.width);
+                let originalSetBRatioY = this.setB.y / (oldHeight || this.canvas.height);
+                
+                // 如果是初始状态，使用默认位置比例
+                if (oldWidth === 0 || oldHeight === 0) {
+                    originalSetARatioX = 0.35;
+                    originalSetARatioY = 0.5;
+                    originalSetBRatioX = 0.65;
+                    originalSetBRatioY = 0.5;
+                }
+                
+                // 根据新的画布尺寸重新计算集合位置，并确保对齐到网格
+                const newAX = this.canvas.width * originalSetARatioX;
+                const newAY = this.canvas.height * originalSetARatioY;
+                const newBX = this.canvas.width * originalSetBRatioX;
+                const newBY = this.canvas.height * originalSetBRatioY;
+                
+                // 对齐到网格
+                this.setA.x = Math.round(newAX / cellSize) * cellSize;
+                this.setA.y = Math.round(newAY / cellSize) * cellSize;
+                this.setB.x = Math.round(newBX / cellSize) * cellSize;
+                this.setB.y = Math.round(newBY / cellSize) * cellSize;
+            }
+            
+            this.draw();
+          }
+        }
+
+        getMousePos(e) {
+          if (!e || !this.canvas) {
+            return { x: 0, y: 0 };
+          }
+
+          const rect = this.canvas.getBoundingClientRect();
+          return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+          };
+        }
+
+        getTouchPos(e) {
+          if (!e || !e.touches || !e.touches[0] || !this.canvas) {
+            return { x: 0, y: 0 };
+          }
+
+          const rect = this.canvas.getBoundingClientRect();
+          return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top,
+          };
+        }
+
+        isPointInCircle(point, circle) {
+          // 确保point和circle对象有效
+          if (
+            !point ||
+            !circle ||
+            point.x === undefined ||
+            point.y === undefined ||
+            circle.x === undefined ||
+            circle.y === undefined ||
+            circle.radius === undefined
+          ) {
+            return false;
+          }
+
+          // 检查点是否在方块内
+          const halfSize = circle.radius;
+          return (
+            point.x >= circle.x - halfSize &&
+            point.x <= circle.x + halfSize &&
+            point.y >= circle.y - halfSize &&
+            point.y <= circle.y + halfSize
+          );
+        }
+
+        handleMouseDown(e) {
+          const mousePos = this.getMousePos(e);
+
+          if (this.isPointInCircle(mousePos, this.setA)) {
+            this.isDragging = true;
+            this.dragTarget = this.setA;
+          } else if (this.isPointInCircle(mousePos, this.setB)) {
+            this.isDragging = true;
+            this.dragTarget = this.setB;
+          }
+        }
+
+        handleTouchStart(e) {
+          e.preventDefault();
+          const touchPos = this.getTouchPos(e);
+
+          if (this.isPointInCircle(touchPos, this.setA)) {
+            this.isDragging = true;
+            this.dragTarget = this.setA;
+          } else if (this.isPointInCircle(touchPos, this.setB)) {
+            this.isDragging = true;
+            this.dragTarget = this.setB;
+          }
+        }
+
+        handleMouseMove(e) {
+          if (this.isDragging && this.dragTarget) {
+            // 再次确保拖动目标有效
+            if (
+              !this.dragTarget ||
+              this.dragTarget.x === undefined ||
+              this.dragTarget.y === undefined
+            ) {
+              this.isDragging = false;
+              this.dragTarget = null;
+              return;
+            }
+
+            const mousePos = this.getMousePos(e);
+            
+            // 使用固定网格大小，而不是根据半径计算
+            const cellSize = 20;
+            
+            // 直接对齐到最近的网格线
+            const alignedX = Math.round(mousePos.x / cellSize) * cellSize;
+            const alignedY = Math.round(mousePos.y / cellSize) * cellSize;
+            
+            // 更新拖动目标的位置
+            this.dragTarget.x = alignedX;
+            this.dragTarget.y = alignedY;
+            
+            this.draw();
+          }
+        }
+
+        handleTouchMove(e) {
+          if (this.isDragging && this.dragTarget) {
+            // 再次确保拖动目标有效
+            if (
+              !this.dragTarget ||
+              this.dragTarget.x === undefined ||
+              this.dragTarget.y === undefined
+            ) {
+              this.isDragging = false;
+              this.dragTarget = null;
+              return;
+            }
+
+            e.preventDefault();
+            const touchPos = this.getTouchPos(e);
+            
+            // 使用固定网格大小，而不是根据半径计算
+            const cellSize = 20;
+            
+            // 直接对齐到最近的网格线
+            const alignedX = Math.round(touchPos.x / cellSize) * cellSize;
+            const alignedY = Math.round(touchPos.y / cellSize) * cellSize;
+            
+            // 更新拖动目标的位置
+            this.dragTarget.x = alignedX;
+            this.dragTarget.y = alignedY;
+            
+            this.draw();
+          }
+        }
+
+        handleMouseUp() {
+          this.isDragging = false;
+          this.dragTarget = null;
+        }
+
+        draw() {
+          // 清除画布
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+          // 绘制集合A（方块）
+          this.ctx.fillStyle = this.setA.color;
+          this.ctx.fillRect(
+            this.setA.x - this.setA.radius,
+            this.setA.y - this.setA.radius,
+            this.setA.radius * 2,
+            this.setA.radius * 2
+          );
+          this.ctx.strokeStyle = "rgba(255, 99, 132, 1)";
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(
+            this.setA.x - this.setA.radius,
+            this.setA.y - this.setA.radius,
+            this.setA.radius * 2,
+            this.setA.radius * 2
+          );
+          
+          // 绘制集合A的虚线网格（10x10）
+          this.drawGrid(this.setA, "rgba(255, 99, 132, 0.5)");
+
+          // 绘制集合B（方块）
+          this.ctx.fillStyle = this.setB.color;
+          this.ctx.fillRect(
+            this.setB.x - this.setB.radius,
+            this.setB.y - this.setB.radius,
+            this.setB.radius * 2,
+            this.setB.radius * 2
+          );
+          this.ctx.strokeStyle = "rgba(54, 162, 235, 1)";
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(
+            this.setB.x - this.setB.radius,
+            this.setB.y - this.setB.radius,
+            this.setB.radius * 2,
+            this.setB.radius * 2
+          );
+          
+          // 绘制集合B的虚线网格（10x10）
+          this.drawGrid(this.setB, "rgba(54, 162, 235, 0.5)");
+
+          // 绘制标签
+          this.ctx.font = "bold 20px Microsoft YaHei";
+          this.ctx.textAlign = "center";
+          this.ctx.textBaseline = "middle";
+
+          // 集合A的标签
+          this.ctx.fillStyle = "rgba(255, 99, 132, 1)";
+          this.ctx.fillText(this.setA.label, this.setA.x, this.setA.y);
+
+          // 集合B的标签
+          this.ctx.fillStyle = "rgba(54, 162, 235, 1)";
+          this.ctx.fillText(this.setB.label, this.setB.x, this.setB.y);
+
+          // 计算并显示交集区域
+          this.drawIntersection();
+        }
+
+        drawGrid(set, color) {
+          // 设置虚线样式
+          this.ctx.strokeStyle = color;
+          this.ctx.lineWidth = 1;
+          this.ctx.setLineDash([3, 3]);
+          
+          // 计算每个小格子的尺寸 - 保持每个小网格单位面积为1
+          // 使用固定网格大小，而不是根据半径计算
+          const cellSize = 20;
+          
+          // 绘制垂直线
+          for (let i = 1; i < 10; i++) {
+            const x = set.x - set.radius + i * cellSize;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, set.y - set.radius);
+            this.ctx.lineTo(x, set.y + set.radius);
+            this.ctx.stroke();
+          }
+          
+          // 绘制水平线
+          for (let i = 1; i < 10; i++) {
+            const y = set.y - set.radius + i * cellSize;
+            this.ctx.beginPath();
+            this.ctx.moveTo(set.x - set.radius, y);
+            this.ctx.lineTo(set.x + set.radius, y);
+            this.ctx.stroke();
+          }
+          
+          // 重置虚线样式
+          this.ctx.setLineDash([]);
+        }
+
+        drawIntersection() {
+          // 计算两方块之间的距离
+          const dx = this.setB.x - this.setA.x;
+          const dy = this.setB.y - this.setA.y;
+
+          // 计算各集合面积（基于网格单位，每个小网格面积为1）
+          // 方块边长为10个网格单位，所以面积为100
+          const areaA = 100;
+          const areaB = 100;
+
+          // 检查是否有交集
+          if (Math.abs(dx) < this.setA.radius + this.setB.radius && 
+              Math.abs(dy) < this.setA.radius + this.setB.radius) {
+            // 计算交集区域（方块交集）
+            
+            // 计算x方向的重叠
+            const leftA = this.setA.x - this.setA.radius;
+            const rightA = this.setA.x + this.setA.radius;
+            const leftB = this.setB.x - this.setB.radius;
+            const rightB = this.setB.x + this.setB.radius;
+            
+            const overlapLeft = Math.max(leftA, leftB);
+            const overlapRight = Math.min(rightA, rightB);
+            const overlapX = Math.max(0, overlapRight - overlapLeft);
+            
+            // 计算y方向的重叠
+            const topA = this.setA.y - this.setA.radius;
+            const bottomA = this.setA.y + this.setA.radius;
+            const topB = this.setB.y - this.setB.radius;
+            const bottomB = this.setB.y + this.setB.radius;
+            
+            const overlapTop = Math.max(topA, topB);
+            const overlapBottom = Math.min(bottomA, bottomB);
+            const overlapY = Math.max(0, overlapBottom - overlapTop);
+            
+            // 交集面积是x和y方向重叠的乘积，然后转换为网格单位
+            // 每个网格单位是20像素，所以除以400（20*20）得到网格单位面积
+            const intersectionArea = Math.round((overlapX * overlapY) / 400);
+
+            // 计算并集面积
+            const unionArea = areaA + areaB - intersectionArea;
+
+            // 显示交集和并集信息
+            this.ctx.font = "16px Microsoft YaHei";
+            this.ctx.fillStyle = "#333";
+            this.ctx.textAlign = "left";
+            this.ctx.textBaseline = "top";
+
+            // 创建一个半透明的背景框，使文字更清晰
+            this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            this.ctx.fillRect(15, 15, 220, 140);
+            
+            // 重新设置文字样式
+            this.ctx.fillStyle = "#333";
+            this.ctx.fillText(`集合A面积: ${areaA}`, 20, 20);
+            this.ctx.fillText(`集合B面积: ${areaB}`, 20, 50);
+            this.ctx.fillText(`交集面积: ${intersectionArea}`, 20, 80);
+            this.ctx.fillText(`并集面积: ${unionArea}`, 20, 110);
+            this.ctx.fillText(
+              `容斥原理验证: ${areaA} + ${areaB} - ${intersectionArea} = ${unionArea}`,
+              20,
+              140
+            );
+          } else {
+            // 没有交集
+            const intUnionArea = areaA + areaB;
+
+            this.ctx.font = "16px Microsoft YaHei";
+            this.ctx.fillStyle = "#333";
+            this.ctx.textAlign = "left";
+            this.ctx.textBaseline = "top";
+
+            // 创建一个半透明的背景框，使文字更清晰
+            this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            this.ctx.fillRect(15, 15, 220, 110);
+            
+            // 重新设置文字样式
+            this.ctx.fillStyle = "#333";
+            this.ctx.fillText(`集合A面积: ${areaA}`, 20, 20);
+            this.ctx.fillText(`集合B面积: ${areaB}`, 20, 50);
+            this.ctx.fillText("交集面积: 0", 20, 80);
+            this.ctx.fillText(`并集面积: ${intUnionArea}`, 20, 110);
+          }
+        }
+      }
+
+      // 三集合容斥原理
+      class ThreeSetsInclusionExclusion {
+        constructor(canvasId) {
+          this.canvas = document.getElementById(canvasId);
+          this.ctx = this.canvas.getContext("2d");
+
+          this.isDragging = false;
+          this.dragTarget = null;
+
+          // 设置canvas尺寸
+          this.resizeCanvas();
+          window.addEventListener("resize", () => this.resizeCanvas());
+
+          // 使用setTimeout确保canvas尺寸确定后再初始化集合位置
+          setTimeout(() => {
+            // 初始化集合对象
+            // 使用固定网格大小，而不是根据半径计算
+            const cellSize = 20;
+            
+            // 确保初始位置对齐到网格
+            const alignedAX = Math.round(this.canvas.width * 0.4 / cellSize) * cellSize;
+            const alignedAY = Math.round(this.canvas.height * 0.4 / cellSize) * cellSize;
+            const alignedBX = Math.round(this.canvas.width * 0.6 / cellSize) * cellSize;
+            const alignedBY = Math.round(this.canvas.height * 0.4 / cellSize) * cellSize;
+            const alignedCX = Math.round(this.canvas.width * 0.5 / cellSize) * cellSize;
+            const alignedCY = Math.round(this.canvas.height * 0.55 / cellSize) * cellSize;
+            
+            this.setA = {
+              x: alignedAX,
+              y: alignedAY,
+              radius: 100, // 增加半径使方块更大
+              color: "rgba(255, 99, 132, 0.5)",
+              label: "A",
+            };
+
+            this.setB = {
+              x: alignedBX,
+              y: alignedBY,
+              radius: 100, // 增加半径使方块更大
+              color: "rgba(54, 162, 235, 0.5)",
+              label: "B",
+            };
+
+            this.setC = {
+              x: alignedCX,
+              y: alignedCY,
+              radius: 100, // 增加半径使方块更大
+              color: "rgba(255, 206, 86, 0.5)",
+              label: "C",
+            };
+
+            // 添加事件监听器（在集合初始化之后）
+            this.canvas.addEventListener("mousedown", (e) =>
+              this.handleMouseDown(e)
+            );
+            this.canvas.addEventListener("mousemove", (e) =>
+              this.handleMouseMove(e)
+            );
+            this.canvas.addEventListener("mouseup", () => this.handleMouseUp());
+            this.canvas.addEventListener("mouseleave", () =>
+              this.handleMouseUp()
+            );
+
+            // 触摸事件支持
+            this.canvas.addEventListener("touchstart", (e) =>
+              this.handleTouchStart(e)
+            );
+            this.canvas.addEventListener("touchmove", (e) =>
+              this.handleTouchMove(e)
+            );
+            this.canvas.addEventListener("touchend", () =>
+              this.handleMouseUp()
+            );
+
+            // 初始绘制
+            this.draw();
+          }, 100);
+        }
+
+        resizeCanvas() {
+            const container = this.canvas.parentElement;
+            const oldWidth = this.canvas.width || 0;
+            const oldHeight = this.canvas.height || 0;
+            
+            this.canvas.width = container.clientWidth;
+            this.canvas.height = container.clientHeight;
+
+            // 只有在集合已初始化时才重新绘制
+            if (this.setA && this.setB && this.setC) {
+                // 如果画布尺寸发生了变化或者之前尺寸为0，重新计算集合位置
+                if (oldWidth !== this.canvas.width || oldHeight !== this.canvas.height || oldWidth === 0 || oldHeight === 0) {
+                    // 使用固定网格大小，而不是根据半径计算
+                    const cellSize = 20;
+                    
+                    // 如果是初始状态（oldWidth或oldHeight为0），使用默认比例
+                    let originalSetARatioX = this.setA.x / (oldWidth || this.canvas.width);
+                    let originalSetARatioY = this.setA.y / (oldHeight || this.canvas.height);
+                    let originalSetBRatioX = this.setB.x / (oldWidth || this.canvas.width);
+                    let originalSetBRatioY = this.setB.y / (oldHeight || this.canvas.height);
+                    let originalSetCRatioX = this.setC.x / (oldWidth || this.canvas.width);
+                    let originalSetCRatioY = this.setC.y / (oldHeight || this.canvas.height);
+                    
+                    // 如果是初始状态，使用默认位置比例
+                    if (oldWidth === 0 || oldHeight === 0) {
+                        originalSetARatioX = 0.4;
+                        originalSetARatioY = 0.4;
+                        originalSetBRatioX = 0.6;
+                        originalSetBRatioY = 0.4;
+                        originalSetCRatioX = 0.5;
+                        originalSetCRatioY = 0.55;
+                    }
+                    
+                    // 根据新的画布尺寸重新计算集合位置，并确保对齐到网格
+                    const newAX = this.canvas.width * originalSetARatioX;
+                    const newAY = this.canvas.height * originalSetARatioY;
+                    const newBX = this.canvas.width * originalSetBRatioX;
+                    const newBY = this.canvas.height * originalSetBRatioY;
+                    const newCX = this.canvas.width * originalSetCRatioX;
+                    const newCY = this.canvas.height * originalSetCRatioY;
+                    
+                    // 对齐到网格
+                    this.setA.x = Math.round(newAX / cellSize) * cellSize;
+                    this.setA.y = Math.round(newAY / cellSize) * cellSize;
+                    this.setB.x = Math.round(newBX / cellSize) * cellSize;
+                    this.setB.y = Math.round(newBY / cellSize) * cellSize;
+                    this.setC.x = Math.round(newCX / cellSize) * cellSize;
+                    this.setC.y = Math.round(newCY / cellSize) * cellSize;
+                }
+                
+                this.draw();
+            }
+        }
+
+        getMousePos(e) {
+          const rect = this.canvas.getBoundingClientRect();
+          return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+          };
+        }
+
+        getTouchPos(e) {
+          const rect = this.canvas.getBoundingClientRect();
+          return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top,
+          };
+        }
+
+        handleMouseDown(e) {
+          // 确保集合已初始化且有效
+          if (
+            !this.setA ||
+            !this.setB ||
+            !this.setC ||
+            this.setA.x === undefined ||
+            this.setA.y === undefined ||
+            this.setB.x === undefined ||
+            this.setB.y === undefined ||
+            this.setC.x === undefined ||
+            this.setC.y === undefined
+          ) {
+            return;
+          }
+
+          const mousePos = this.getMousePos(e);
+
+          if (this.isPointInCircle(mousePos.x, mousePos.y, this.setA)) {
+            this.isDragging = true;
+            this.dragTarget = this.setA;
+          } else if (this.isPointInCircle(mousePos.x, mousePos.y, this.setB)) {
+            this.isDragging = true;
+            this.dragTarget = this.setB;
+          } else if (this.isPointInCircle(mousePos.x, mousePos.y, this.setC)) {
+            this.isDragging = true;
+            this.dragTarget = this.setC;
+          }
+        }
+
+        handleTouchStart(e) {
+          // 确保集合已初始化且有效
+          if (
+            !this.setA ||
+            !this.setB ||
+            !this.setC ||
+            this.setA.x === undefined ||
+            this.setA.y === undefined ||
+            this.setB.x === undefined ||
+            this.setB.y === undefined ||
+            this.setC.x === undefined ||
+            this.setC.y === undefined
+          ) {
+            return;
+          }
+
+          e.preventDefault();
+          const touchPos = this.getTouchPos(e);
+
+          if (this.isPointInCircle(touchPos.x, touchPos.y, this.setA)) {
+            this.isDragging = true;
+            this.dragTarget = this.setA;
+          } else if (this.isPointInCircle(touchPos.x, touchPos.y, this.setB)) {
+            this.isDragging = true;
+            this.dragTarget = this.setB;
+          } else if (this.isPointInCircle(touchPos.x, touchPos.y, this.setC)) {
+            this.isDragging = true;
+            this.dragTarget = this.setC;
+          }
+        }
+
+        handleMouseMove(e) {
+          if (this.isDragging && this.dragTarget) {
+            // 检查dragTarget是否有效
+            if (
+              this.dragTarget.x === undefined ||
+              this.dragTarget.y === undefined
+            ) {
+              this.isDragging = false;
+              this.dragTarget = null;
+              return;
+            }
+
+            const mousePos = this.getMousePos(e);
+            
+            // 使用固定网格大小，而不是根据半径计算
+            const cellSize = 20;
+            
+            // 直接对齐到最近的网格线
+            const alignedX = Math.round(mousePos.x / cellSize) * cellSize;
+            const alignedY = Math.round(mousePos.y / cellSize) * cellSize;
+            
+            // 更新拖动目标的位置
+            this.dragTarget.x = alignedX;
+            this.dragTarget.y = alignedY;
+            
+            this.draw();
+          }
+        }
+
+        handleTouchMove(e) {
+          if (this.isDragging && this.dragTarget) {
+            // 检查dragTarget是否有效
+            if (
+              this.dragTarget.x === undefined ||
+              this.dragTarget.y === undefined
+            ) {
+              this.isDragging = false;
+              this.dragTarget = null;
+              return;
+            }
+
+            e.preventDefault();
+            const touchPos = this.getTouchPos(e);
+            
+            // 使用固定网格大小，而不是根据半径计算
+            const cellSize = 20;
+            
+            // 直接对齐到最近的网格线
+            const alignedX = Math.round(touchPos.x / cellSize) * cellSize;
+            const alignedY = Math.round(touchPos.y / cellSize) * cellSize;
+            
+            // 更新拖动目标的位置
+            this.dragTarget.x = alignedX;
+            this.dragTarget.y = alignedY;
+            
+            this.draw();
+          }
+        }
+
+        handleMouseUp() {
+          this.isDragging = false;
+          this.dragTarget = null;
+        }
+
+        draw() {
+          // 确保集合已初始化且有效
+          if (
+            !this.setA ||
+            !this.setB ||
+            !this.setC ||
+            this.setA.x === undefined ||
+            this.setA.y === undefined ||
+            this.setA.radius === undefined ||
+            this.setB.x === undefined ||
+            this.setB.y === undefined ||
+            this.setB.radius === undefined ||
+            this.setC.x === undefined ||
+            this.setC.y === undefined ||
+            this.setC.radius === undefined
+          ) {
+            return;
+          }
+
+          // 清除画布
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+          // 设置全局混合模式，使交集更加明显
+          this.ctx.globalCompositeOperation = "source-over";
+
+          // 绘制集合A（方块）
+          this.ctx.fillStyle = this.setA.color;
+          this.ctx.fillRect(
+            this.setA.x - this.setA.radius,
+            this.setA.y - this.setA.radius,
+            this.setA.radius * 2,
+            this.setA.radius * 2
+          );
+          this.ctx.strokeStyle = "rgba(255, 99, 132, 1)";
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(
+            this.setA.x - this.setA.radius,
+            this.setA.y - this.setA.radius,
+            this.setA.radius * 2,
+            this.setA.radius * 2
+          );
+          
+          // 为集合A绘制虚线网格
+          this.drawGrid(this.setA);
+
+          // 绘制集合B（方块）
+          this.ctx.fillStyle = this.setB.color;
+          this.ctx.fillRect(
+            this.setB.x - this.setB.radius,
+            this.setB.y - this.setB.radius,
+            this.setB.radius * 2,
+            this.setB.radius * 2
+          );
+          this.ctx.strokeStyle = "rgba(54, 162, 235, 1)";
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(
+            this.setB.x - this.setB.radius,
+            this.setB.y - this.setB.radius,
+            this.setB.radius * 2,
+            this.setB.radius * 2
+          );
+          
+          // 为集合B绘制虚线网格
+          this.drawGrid(this.setB);
+
+          // 绘制集合C（方块）
+          this.ctx.fillStyle = this.setC.color;
+          this.ctx.fillRect(
+            this.setC.x - this.setC.radius,
+            this.setC.y - this.setC.radius,
+            this.setC.radius * 2,
+            this.setC.radius * 2
+          );
+          this.ctx.strokeStyle = "rgba(255, 206, 86, 1)";
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(
+            this.setC.x - this.setC.radius,
+            this.setC.y - this.setC.radius,
+            this.setC.radius * 2,
+            this.setC.radius * 2
+          );
+          
+          // 为集合C绘制虚线网格
+          this.drawGrid(this.setC);
+
+          // 绘制标签
+          this.ctx.font = "bold 16px Microsoft YaHei";
+          this.ctx.textAlign = "center";
+          this.ctx.textBaseline = "middle";
+
+          // 集合A的标签
+          this.ctx.fillStyle = "rgba(255, 99, 132, 1)";
+          this.ctx.fillText(this.setA.label, this.setA.x, this.setA.y);
+
+          // 集合B的标签
+          this.ctx.fillStyle = "rgba(54, 162, 235, 1)";
+          this.ctx.fillText(this.setB.label, this.setB.x, this.setB.y);
+
+          // 集合C的标签
+          this.ctx.fillStyle = "rgba(255, 206, 86, 1)";
+          this.ctx.fillText(this.setC.label, this.setC.x, this.setC.y);
+
+          // 计算并显示交集区域
+          this.drawIntersections();
+        }
+
+        drawIntersections() {
+          // 确保集合已初始化且有效
+          if (
+            !this.setA ||
+            !this.setB ||
+            !this.setC ||
+            this.setA.x === undefined ||
+            this.setA.y === undefined ||
+            this.setA.radius === undefined ||
+            this.setB.x === undefined ||
+            this.setB.y === undefined ||
+            this.setB.radius === undefined ||
+            this.setC.x === undefined ||
+            this.setC.y === undefined ||
+            this.setC.radius === undefined
+          ) {
+            return;
+          }
+
+          // 计算两两之间的距离
+          const distAB = this.getDistance(this.setA, this.setB);
+          const distAC = this.getDistance(this.setA, this.setC);
+          const distBC = this.getDistance(this.setB, this.setC);
+
+          // 计算各集合面积（基于网格单位，每个小网格面积为1）
+          // 方块边长为10个网格单位，所以面积为100
+          const areaA = 100;
+          const areaB = 100;
+          const areaC = 100;
+
+          // 计算两两交集面积
+          const areaAB = this.calculateIntersectionArea(
+            this.setA,
+            this.setB,
+            distAB
+          );
+          const areaAC = this.calculateIntersectionArea(
+            this.setA,
+            this.setC,
+            distAC
+          );
+          const areaBC = this.calculateIntersectionArea(
+            this.setB,
+            this.setC,
+            distBC
+          );
+
+          // 计算三集合交集面积（简化计算）
+          const areaABC = this.calculateThreeSetIntersection();
+
+          // 计算并集面积（容斥原理）
+          const unionArea =
+            areaA + areaB + areaC - areaAB - areaAC - areaBC + areaABC;
+
+          // 显示交集和并集信息
+          this.ctx.font = "16px Microsoft YaHei";
+          this.ctx.fillStyle = "#333";
+          this.ctx.textAlign = "left";
+          this.ctx.textBaseline = "top";
+
+          // 创建一个半透明的背景框，使文字更清晰
+          this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+          this.ctx.fillRect(15, 15, 220, 360);
+          
+          // 重新设置文字样式
+          this.ctx.fillStyle = "#333";
+          this.ctx.fillText(`集合A面积: ${areaA}`, 20, 20);
+          this.ctx.fillText(`集合B面积: ${areaB}`, 20, 50);
+          this.ctx.fillText(`集合C面积: ${areaC}`, 20, 80);
+          this.ctx.fillText(`A∩B面积: ${areaAB}`, 20, 110);
+          this.ctx.fillText(`A∩C面积: ${areaAC}`, 20, 140);
+          this.ctx.fillText(`B∩C面积: ${areaBC}`, 20, 170);
+          this.ctx.fillText(`A∩B∩C面积: ${areaABC}`, 20, 200);
+          this.ctx.fillText(`并集面积: ${unionArea}`, 20, 230);
+
+          // 显示容斥原理公式
+          this.ctx.fillText(`容斥原理验证:`, 20, 270);
+          this.ctx.fillText(`${areaA} + ${areaB} + ${areaC}`, 20, 300);
+          this.ctx.fillText(
+            `- ${areaAB} - ${areaAC} - ${areaBC}`,
+            20,
+            330
+          );
+          this.ctx.fillText(`+ ${areaABC} = ${unionArea}`, 20, 360);
+        }
+
+        getDistance(set1, set2) {
+          // 确保集合对象有效
+          if (
+            !set1 ||
+            !set2 ||
+            set1.x === undefined ||
+            set1.y === undefined ||
+            set2.x === undefined ||
+            set2.y === undefined
+          ) {
+            return 0;
+          }
+
+          const dx = set2.x - set1.x;
+          const dy = set2.y - set1.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        calculateIntersectionArea(set1, set2, distance) {
+          // 确保集合对象有效
+          if (
+            !set1 ||
+            !set2 ||
+            set1.radius === undefined ||
+            set2.radius === undefined ||
+            set1.x === undefined ||
+            set1.y === undefined ||
+            set2.x === undefined ||
+            set2.y === undefined
+          ) {
+            return 0;
+          }
+
+          // 计算x方向的重叠
+          const left1 = set1.x - set1.radius;
+          const right1 = set1.x + set1.radius;
+          const left2 = set2.x - set2.radius;
+          const right2 = set2.x + set2.radius;
+          
+          const overlapLeft = Math.max(left1, left2);
+          const overlapRight = Math.min(right1, right2);
+          const overlapX = Math.max(0, overlapRight - overlapLeft);
+          
+          // 计算y方向的重叠
+          const top1 = set1.y - set1.radius;
+          const bottom1 = set1.y + set1.radius;
+          const top2 = set2.y - set2.radius;
+          const bottom2 = set2.y + set2.radius;
+          
+          const overlapTop = Math.max(top1, top2);
+          const overlapBottom = Math.min(bottom1, bottom2);
+          const overlapY = Math.max(0, overlapBottom - overlapTop);
+          
+          // 交集面积是x和y方向重叠的乘积，然后转换为网格单位
+          // 每个网格单位是20像素，所以除以400（20*20）得到网格单位面积
+          return Math.round((overlapX * overlapY) / 400);
+        }
+
+        calculateThreeSetIntersection() {
+          // 确保集合已初始化且有效
+          if (
+            !this.setA ||
+            !this.setB ||
+            !this.setC ||
+            this.setA.x === undefined ||
+            this.setA.y === undefined ||
+            this.setA.radius === undefined ||
+            this.setB.x === undefined ||
+            this.setB.y === undefined ||
+            this.setB.radius === undefined ||
+            this.setC.x === undefined ||
+            this.setC.y === undefined ||
+            this.setC.radius === undefined
+          ) {
+            return 0;
+          }
+
+          // 计算三个方块的边界框交集
+          const minX = Math.max(
+            this.setA.x - this.setA.radius,
+            this.setB.x - this.setB.radius,
+            this.setC.x - this.setC.radius
+          );
+          const maxX = Math.min(
+            this.setA.x + this.setA.radius,
+            this.setB.x + this.setB.radius,
+            this.setC.x + this.setC.radius
+          );
+          const minY = Math.max(
+            this.setA.y - this.setA.radius,
+            this.setB.y - this.setB.radius,
+            this.setC.y - this.setC.radius
+          );
+          const maxY = Math.min(
+            this.setA.y + this.setA.radius,
+            this.setB.y + this.setB.radius,
+            this.setC.y + this.setC.radius
+          );
+
+          // 如果没有交集区域，返回0
+          if (maxX < minX || maxY < minY) {
+            return 0;
+          }
+
+          // 计算交集面积（像素单位）
+          const intersectionAreaPixels = (maxX - minX) * (maxY - minY);
+          
+          // 转换为网格单位面积
+          // 每个网格单位是20像素，所以除以400（20*20）得到网格单位面积
+          const intersectionAreaGrid = Math.round(intersectionAreaPixels / 400);
+
+          return intersectionAreaGrid;
+        }
+
+        isPointInCircle(x, y, circle) {
+          // 确保参数有效
+          if (
+            x === undefined ||
+            y === undefined ||
+            !circle ||
+            circle.x === undefined ||
+            circle.y === undefined ||
+            circle.radius === undefined
+          ) {
+            return false;
+          }
+
+          // 检查点是否在方块内
+          const halfSize = circle.radius;
+          return (
+            x >= circle.x - halfSize &&
+            x <= circle.x + halfSize &&
+            y >= circle.y - halfSize &&
+            y <= circle.y + halfSize
+          );
+        }
+        
+        // 绘制10x10的虚线网格
+        drawGrid(set) {
+          // 确保集合对象有效
+          if (
+            !set ||
+            set.x === undefined ||
+            set.y === undefined ||
+            set.radius === undefined
+          ) {
+            return;
+          }
+
+          // 保存当前画布状态
+          this.ctx.save();
+
+          // 设置虚线样式
+          this.ctx.setLineDash([2, 2]);
+          this.ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+          this.ctx.lineWidth = 1;
+
+          // 使用固定网格大小，而不是根据半径计算
+          const cellSize = 20;
+          const halfSize = set.radius;
+
+          // 绘制垂直线
+          for (let i = 1; i < 10; i++) {
+            const x = set.x - halfSize + i * cellSize;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, set.y - halfSize);
+            this.ctx.lineTo(x, set.y + halfSize);
+            this.ctx.stroke();
+          }
+
+          // 绘制水平线
+          for (let i = 1; i < 10; i++) {
+            const y = set.y - halfSize + i * cellSize;
+            this.ctx.beginPath();
+            this.ctx.moveTo(set.x - halfSize, y);
+            this.ctx.lineTo(set.x + halfSize, y);
+            this.ctx.stroke();
+          }
+
+          // 恢复画布状态
+          this.ctx.restore();
+        }
+      }
+
+      // 初始化
+      document.addEventListener("DOMContentLoaded", () => {
+        // 初始化两集合对象
+        window.twoSets = new TwoSetsInclusionExclusion("canvas-two");
+
+        // 初始化三集合对象，并确保在创建后有一段延迟使其完全初始化
+        window.threeSets = new ThreeSetsInclusionExclusion("canvas-three");
+
+        // 确保两集合和三集合对象完全初始化后再进行其他操作
+        setTimeout(() => {
+          // 确保当前活动标签页的内容正确显示
+          const activeTab = document.querySelector(".tab.active");
+          if (activeTab && activeTab.textContent.includes("三集合")) {
+            window.threeSets.resizeCanvas();
+            window.threeSets.draw();
+          } else if (activeTab && activeTab.textContent.includes("两集合")) {
+            window.twoSets.resizeCanvas();
+            window.twoSets.draw();
+          }
+        }, 300); // 增加延迟时间，确保对象完全初始化
+      });
+    </script>
+  </body>
+</html>
